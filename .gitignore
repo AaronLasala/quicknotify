@@ -62,3 +62,7 @@ ios/Runner.xcworkspace/xcuserdata/
 .DS_Store
 .vscode/
 
+# Firebase configuration files
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+

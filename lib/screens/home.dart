@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'history.dart';
 import 'profile.dart';
+import 'package:video_player/video_player.dart';
+
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -95,6 +97,25 @@ class HomeScreenContent extends StatefulWidget {
 class _HomeScreenContentState extends State<HomeScreenContent> {
   final TextEditingController _controller = TextEditingController();
   final User? user = FirebaseAuth.instance.currentUser;
+  late VideoPlayerController _videoPlayerController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize the video player controller with the live feed URL from your Arduino camera
+    _videoPlayerController = VideoPlayerController.networkUrl(
+      Uri.parse('http://192.168.1.24'),
+    )..initialize().then((_) {
+        setState(() {});
+        _videoPlayerController.play();
+      });
+  }
+
+  @override
+  void dispose() {
+    _videoPlayerController.dispose();
+    super.dispose();
+  }
 
   void _sendTextToFirebase() {
     final String text = _controller.text;
@@ -159,11 +180,12 @@ class _HomeScreenContentState extends State<HomeScreenContent> {
               const SizedBox(height: 50),
               Transform.translate(
                 offset: const Offset(0, -50), // Move it up by 10 pixels
-                child: const CircleAvatar(
-                  radius: 160, // Increased radius to make the placeholder larger
-                  backgroundImage: AssetImage(
-                      'assets/visitor_placeholder.jpg'), // Placeholder image
-                ),
+                child: _videoPlayerController.value.isInitialized
+                    ? AspectRatio(
+                        aspectRatio: _videoPlayerController.value.aspectRatio,
+                        child: VideoPlayer(_videoPlayerController),
+                      )
+                    : const CircularProgressIndicator(),
               ),
               const SizedBox(height: 20),
               Transform.translate(
